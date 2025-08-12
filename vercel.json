@@ -21,9 +21,6 @@
     }
   ],
   "env": {
-    "AIRTABLE_API_KEY": "@airtable_api_key",
-    "AIRTABLE_BASE_ID": "@airtable_base_id",
-    "SECRET_KEY": "@secret_key",
     "APP_NAME": "Estrattore UTM Term",
     "APP_VERSION": "1.0.0"
   }
