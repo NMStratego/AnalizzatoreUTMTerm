@@ -386,8 +386,6 @@ def download_file(file_type):
         flash(f'Errore durante il download: {str(e)}')
         return redirect(url_for('index'))
 
-# For Vercel deployment
-app = app
-
+# For Vercel deployment - app is exported via index.py
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
