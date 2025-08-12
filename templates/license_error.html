@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licenza Richiesta - Analizzatore UTM Term</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .error-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .error-icon {
+            font-size: 5rem;
+            color: #ff6b6b;
+            margin-bottom: 2rem;
+        }
+        
+        .error-title {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-outline-secondary {
+            border: 2px solid #6c757d;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+        
+        .license-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-left: 5px solid #ff6b6b;
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+        
+        .feature-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+        
+        .contact-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="error-container">
+                    <div class="error-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    
+                    <h1 class="error-title">Licenza Richiesta</h1>
+                    
+                    <p class="error-message">
+                        Per accedere a <strong>Analizzatore UTM Term</strong> è necessaria una licenza attiva.
+                        La tua licenza potrebbe essere scaduta o non ancora attivata.
+                    </p>
+                    
+                    <div class="license-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>Informazioni sulla Licenza</h5>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Analisi completa dei file CSV
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Estrazione automatica UTM Term
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Report dettagliati e statistiche
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Supporto tecnico dedicato
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button class="btn btn-primary me-md-2" onclick="checkLicense()">
+                            <i class="fas fa-sync-alt me-2"></i>Verifica Licenza
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="goToLogin()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Torna al Login
+                        </button>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <h6><i class="fas fa-headset me-2"></i>Hai bisogno di aiuto?</h6>
+                        <p class="mb-0">
+                            Contatta il nostro team di supporto per attivare la tua licenza
+                            o risolvere eventuali problemi di accesso.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="fixed-bottom bg-dark text-white py-2">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col text-center">
+                    <small>
+                        <i class="fas fa-copyright me-1"></i>
+                        © 2025 Stratego Swat. Tutti i diritti riservati.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function checkLicense() {
+            try {
+                // Show loading state
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verificando...';
+                btn.disabled = true;
+                
+                const response = await fetch('/api/licenses/verify');
+                const result = await response.json();
+                
+                if (result.success && result.license_active) {
+                    // License is now active, redirect to main page
+                    window.location.href = '/';
+                } else {
+                    // Show error message
+                    showAlert(result.message || 'Licenza ancora non attiva', 'warning');
+                }
+                
+            } catch (error) {
+                console.error('Errore durante la verifica della licenza:', error);
+                showAlert('Errore di connessione. Riprova più tardi.', 'danger');
+            } finally {
+                // Reset button
+                const btn = event.target;
+                btn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Verifica Licenza';
+                btn.disabled = false;
+            }
+        }
+        
+        function goToLogin() {
+            console.log('goToLogin() chiamata - reindirizzamento a /login');
+            window.location.href = '/login';
+        }
+        
+        function showAlert(message, type = 'info') {
+            // Create alert element
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Insert after the buttons
+            const buttonsContainer = document.querySelector('.d-grid');
+            buttonsContainer.parentNode.insertBefore(alertDiv, buttonsContainer.nextSibling);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    const bsAlert = new bootstrap.Alert(alertDiv);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
+        
+        // Removed automatic session check to allow manual navigation
+        // Users can manually click "Torna al Login" to go back to login page
+    </script>
+</body>
+</html>
