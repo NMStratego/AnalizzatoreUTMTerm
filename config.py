@@ -1,8 +1,12 @@
 import os
 from dotenv import load_dotenv
 
-# Carica le variabili d'ambiente dal file .env
-load_dotenv()
+# Carica le variabili d'ambiente dal file .env (solo se esiste)
+try:
+    load_dotenv()
+except Exception:
+    # Su Vercel le variabili d'ambiente sono già disponibili
+    pass
 
 class Config:
     # Configurazione Flask

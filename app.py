@@ -8,8 +8,12 @@ from datetime import datetime
 import json
 from dotenv import load_dotenv
 
-# Carica le variabili d'ambiente
-load_dotenv()
+# Carica le variabili d'ambiente (solo se il file .env esiste)
+try:
+    load_dotenv()
+except Exception:
+    # Su Vercel le variabili d'ambiente sono già disponibili
+    pass
 
 # Importa configurazione e servizi
 from config import Config
@@ -29,9 +33,13 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(licenses_bp, url_prefix='/api/licenses')
 app.register_blueprint(users_bp, url_prefix='/api/users')
 
-# Crea la cartella uploads se non esiste
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
+# Crea la cartella uploads se non esiste (solo in ambiente locale)
+try:
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+except (OSError, PermissionError):
+    # Su Vercel usa /tmp per i file temporanei
+    app.config['UPLOAD_FOLDER'] = '/tmp'
 
 def extract_utm_term_from_url(url):
     """Estrae il valore utm_term da un URL"""
