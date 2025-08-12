@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, send_file, flash, redirect, url_for, jsonify, session
-import pandas as pd
+import csv
 import os
 from urllib.parse import urlparse, parse_qs
 from collections import Counter
@@ -84,31 +84,44 @@ def process_csv_file(file_path):
     """Processa il file CSV e restituisce i risultati"""
     try:
         # Leggi il file CSV
-        df = pd.read_csv(file_path)
+        rows = []
+        with open(file_path, 'r', encoding='utf-8-sig', newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                rows.append(row)
         
         # Filtra solo le righe che hanno una SORGENTE (URL) con utm_term
-        df_with_url = df[df['SORGENTE'].notna() & df['SORGENTE'].str.contains('utm_term', na=False)]
+        rows_with_url = []
+        for row in rows:
+            sorgente = row.get('SORGENTE', '')
+            if sorgente and 'utm_term' in sorgente:
+                rows_with_url.append(row)
         
         # Estrai i parametri UTM
-        df_with_url = df_with_url.copy()
-        df_with_url['utm_term_extracted'] = df_with_url['SORGENTE'].apply(extract_utm_term_from_url)
-        df_with_url['utm_campaign_extracted'] = df_with_url['SORGENTE'].apply(extract_campaign_name_from_url)
-        df_with_url['utm_content_extracted'] = df_with_url['SORGENTE'].apply(extract_content_name_from_url)
-        
-        # Rimuovi righe senza utm_term
-        df_with_utm_term = df_with_url[df_with_url['utm_term_extracted'].notna()]
+        rows_with_utm_term = []
+        for row in rows_with_url:
+            utm_term = extract_utm_term_from_url(row.get('SORGENTE', ''))
+            utm_campaign = extract_campaign_name_from_url(row.get('SORGENTE', ''))
+            utm_content = extract_content_name_from_url(row.get('SORGENTE', ''))
+            
+            if utm_term:
+                row['utm_term_extracted'] = utm_term
+                row['utm_campaign_extracted'] = utm_campaign
+                row['utm_content_extracted'] = utm_content
+                rows_with_utm_term.append(row)
         
         # Analizza i valori utm_term più frequenti
-        utm_term_counts = Counter(df_with_utm_term['utm_term_extracted'])
+        utm_term_counts = Counter([row['utm_term_extracted'] for row in rows_with_utm_term])
         
         # Crea un mapping utm_term -> nome inserzione basato su utm_content
         utm_term_to_content = {}
         
         for utm_term in utm_term_counts.keys():
             if utm_term:
-                subset = df_with_utm_term[df_with_utm_term['utm_term_extracted'] == utm_term]
-                content_counts = Counter(subset['utm_content_extracted'].dropna())
-                if content_counts:
+                content_list = [row['utm_content_extracted'] for row in rows_with_utm_term 
+                               if row['utm_term_extracted'] == utm_term and row.get('utm_content_extracted')]
+                if content_list:
+                    content_counts = Counter(content_list)
                     most_common_content = content_counts.most_common(1)[0][0]
                     utm_term_to_content[utm_term] = most_common_content
         
@@ -122,19 +135,27 @@ def process_csv_file(file_path):
                 'numero_lead': count
             })
         
-        results_df = pd.DataFrame(results)
-        results_df = results_df.sort_values('numero_lead', ascending=False)
+        # Ordina per numero di lead
+        results.sort(key=lambda x: x['numero_lead'], reverse=True)
         
         # Prepara i dati dettagliati
-        detailed_results = df_with_utm_term[['Data', 'Ora', 'Email', 'utm_term_extracted', 'utm_campaign_extracted', 'utm_content_extracted']].copy()
-        detailed_results.columns = ['Data', 'Ora', 'Email', 'UTM_Term', 'Campagna', 'Nome_Inserzione']
+        detailed_results = []
+        for row in rows_with_utm_term:
+            detailed_results.append({
+                'Data': row.get('Data', ''),
+                'Ora': row.get('Ora', ''),
+                'Email': row.get('Email', ''),
+                'UTM_Term': row.get('utm_term_extracted', ''),
+                'Campagna': row.get('utm_campaign_extracted', ''),
+                'Nome_Inserzione': row.get('utm_content_extracted', '')
+            })
         
         return {
             'success': True,
-            'total_rows': len(df),
-            'rows_with_utm_term': len(df_with_utm_term),
-            'unique_ads': len(results_df),
-            'results_df': results_df,
+            'total_rows': len(rows),
+            'rows_with_utm_term': len(rows_with_utm_term),
+            'unique_ads': len(results),
+            'results_df': results,
             'detailed_df': detailed_results,
             'top_utm_terms': utm_term_counts.most_common(10)
         }
@@ -149,15 +170,20 @@ def process_csv(file_path):
     """Processa il file CSV e restituisce i risultati dell'analisi"""
     try:
         # Leggi il CSV
-        df = pd.read_csv(file_path)
+        rows = []
+        with open(file_path, 'r', encoding='utf-8-sig', newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            fieldnames = reader.fieldnames
+            for row in reader:
+                rows.append(row)
         
         # Verifica che esista la colonna SORGENTE
-        if 'SORGENTE' not in df.columns:
+        if 'SORGENTE' not in fieldnames:
             return {'error': 'Il file deve contenere una colonna "SORGENTE"'}
         
         # Estrai utm_term, utm_campaign e utm_content dagli URL
         utm_data = []
-        for idx, row in df.iterrows():
+        for row in rows:
             url = str(row.get('SORGENTE', ''))
             if 'utm_term=' in url:
                 try:
@@ -183,24 +209,23 @@ def process_csv(file_path):
         if not utm_data:
             return {'error': 'Nessun URL con utm_term trovato nel file'}
         
-        # Crea DataFrame con i dati UTM
-        df_utm = pd.DataFrame(utm_data)
-        
         # Conta le occorrenze di ogni utm_term
-        utm_term_counts = df_utm['utm_term'].value_counts()
+        utm_term_counts = Counter([item['utm_term'] for item in utm_data])
         
         # Mappa utm_term a nome inserzione usando utm_content
         utm_mapping = {}
-        for utm_term in utm_term_counts.index:
+        for utm_term in utm_term_counts.keys():
             # Trova il utm_content più frequente per questo utm_term
-            content_for_term = df_utm[df_utm['utm_term'] == utm_term]['utm_content']
-            most_common_content = content_for_term.mode().iloc[0] if not content_for_term.empty else utm_term
-            
-            # Se utm_content è vuoto, usa utm_term
-            nome_inserzione = most_common_content if most_common_content else utm_term
+            content_for_term = [item['utm_content'] for item in utm_data if item['utm_term'] == utm_term and item['utm_content']]
+            if content_for_term:
+                content_counts = Counter(content_for_term)
+                most_common_content = content_counts.most_common(1)[0][0]
+                nome_inserzione = most_common_content if most_common_content else utm_term
+            else:
+                nome_inserzione = utm_term
             utm_mapping[utm_term] = nome_inserzione
         
-        # Crea il DataFrame dei risultati
+        # Crea i risultati
         results_data = []
         for utm_term, count in utm_term_counts.items():
             results_data.append({
@@ -209,20 +234,15 @@ def process_csv(file_path):
                 'numero_lead': count
             })
         
-        results_df = pd.DataFrame(results_data)
-        
-        # Aggiungi nome inserzione al DataFrame dettagliato
-        df_utm['nome_inserzione'] = df_utm['utm_term'].map(utm_mapping)
-        
-        # Salva i file CSV
-        results_df.to_csv('utm_term_inserzioni.csv', index=False)
-        df_utm.to_csv('lead_dettagliati_con_inserzioni.csv', index=False)
+        # Aggiungi nome inserzione ai dati dettagliati
+        for item in utm_data:
+            item['nome_inserzione'] = utm_mapping[item['utm_term']]
         
         return {
-            'results_df': results_df,
-            'detailed_df': df_utm,
-            'total_rows': len(df),
-            'rows_with_utm_term': len(df_utm),
+            'results_df': results_data,
+            'detailed_df': utm_data,
+            'total_rows': len(rows),
+            'rows_with_utm_term': len(utm_data),
             'unique_ads': len(utm_term_counts)
         }
         
@@ -304,7 +324,7 @@ def upload_file():
             # Logging rimosso
             
             # Prepara i dati per il template
-            top_insertions_list = results['results_df'].to_dict('records')
+            top_insertions_list = results['results_df']
             
             session_data = {
                 'top_insertions': top_insertions_list,
@@ -354,11 +374,16 @@ def download_file(file_type):
         # Genera il file richiesto
         if file_type == 'utm_term_inserzioni.csv':
             # File riepilogo inserzioni
-            df = results['results_df']
+            data = results['results_df']
             
             # Crea un file temporaneo
             temp_file = os.path.join(upload_folder, 'temp_utm_term_inserzioni.csv')
-            df.to_csv(temp_file, index=False, encoding='utf-8-sig')
+            with open(temp_file, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                if data:
+                    fieldnames = data[0].keys()
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(data)
             
             return send_file(temp_file, 
                            as_attachment=True, 
@@ -367,11 +392,16 @@ def download_file(file_type):
         
         elif file_type == 'lead_dettagliati_con_inserzioni.csv':
             # File dettagliato con tutti i lead
-            df = results['detailed_df']
+            data = results['detailed_df']
             
             # Crea un file temporaneo
             temp_file = os.path.join(upload_folder, 'temp_lead_dettagliati.csv')
-            df.to_csv(temp_file, index=False, encoding='utf-8-sig')
+            with open(temp_file, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                if data:
+                    fieldnames = data[0].keys()
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(data)
             
             return send_file(temp_file, 
                            as_attachment=True, 
