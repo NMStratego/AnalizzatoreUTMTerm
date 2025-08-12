@@ -88,7 +88,7 @@
                                 <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
                                 <h4>Trascina il file qui o clicca per selezionare</h4>
                                 <p class="text-muted mb-3">
-                                    Supporta file CSV fino a 50MB<br>
+                                    Supporta file CSV fino a 4MB<br>
                                     Il file deve contenere una colonna 'SORGENTE' con URL contenenti utm_term
                                 </p>
                                 <input type="file" name="file" id="fileInput" accept=".csv" class="d-none" required>
@@ -177,10 +177,20 @@
                             <li><strong>Email:</strong> Email del lead</li>
                             <li><strong>SORGENTE:</strong> URL completo con parametri UTM (deve contenere utm_term)</li>
                         </ul>
-                        <p class="text-muted mb-0">
+                        <p class="text-muted mb-3">
                             <i class="fas fa-lightbulb me-2"></i>
                             <strong>Suggerimento:</strong> Assicurati che gli URL nella colonna SORGENTE contengano il parametro utm_term per ottenere risultati accurati.
                         </p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Limite dimensione file:</strong> A causa dei limiti di Vercel, i file CSV non possono superare i 4MB. 
+                            Se il tuo file è più grande, prova a:
+                            <ul class="mb-0 mt-2">
+                                <li>Dividere il file in parti più piccole</li>
+                                <li>Rimuovere colonne non necessarie</li>
+                                <li>Filtrare solo i dati più recenti</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -223,6 +233,16 @@
         function handleFileSelect() {
             const file = fileInput.files[0];
             if (file) {
+                // Controlla la dimensione del file (4MB = 4 * 1024 * 1024 bytes)
+                const maxSize = 4 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    alert('Il file è troppo grande. La dimensione massima consentita è 4MB. Il tuo file è ' + formatFileSize(file.size) + '.');
+                    fileInput.value = '';
+                    fileInfo.classList.add('d-none');
+                    submitBtn.disabled = true;
+                    return;
+                }
+                
                 fileName.textContent = file.name;
                 fileSize.textContent = formatFileSize(file.size);
                 fileInfo.classList.remove('d-none');

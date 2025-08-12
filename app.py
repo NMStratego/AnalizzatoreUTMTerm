@@ -298,6 +298,11 @@ def index():
     
     return render_template('index.html')
 
+@app.errorhandler(413)
+def too_large(e):
+    flash('Il file è troppo grande. La dimensione massima consentita è 4MB.')
+    return redirect(url_for('index'))
+
 @app.route('/upload', methods=['POST'])
 @license_required()
 def upload_file():
@@ -308,6 +313,11 @@ def upload_file():
     file = request.files['file']
     if file.filename == '':
         flash('Nessun file selezionato')
+        return redirect(request.url)
+    
+    # Controllo aggiuntivo della dimensione del file
+    if hasattr(file, 'content_length') and file.content_length > app.config['MAX_CONTENT_LENGTH']:
+        flash('Il file è troppo grande. La dimensione massima consentita è 4MB.')
         return redirect(request.url)
     
     if file and file.filename.lower().endswith('.csv'):
