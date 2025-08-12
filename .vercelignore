@@ -1,0 +1,40 @@
+# Exclude upload files and temporary data
+uploads/
+*.csv
+
+# Exclude Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Exclude development and Git files
+.git/
+.gitignore
+.env
+README.md
+*.md
+
+# Exclude logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# Exclude IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Exclude test files
+test/
+tests/
+*.test.py
+
+# Exclude documentation
+docs/
+
+# Exclude local development files
+node_modules/
+.DS_Store
+Thumbs.db
