@@ -300,7 +300,10 @@ def index():
 
 @app.errorhandler(413)
 def too_large(e):
-    flash('Il file è troppo grande. La dimensione massima consentita è 4MB.')
+    # Rileva se siamo su Railway o Vercel
+    railway_env = os.environ.get('RAILWAY_ENVIRONMENT_NAME') is not None
+    max_size_text = '50MB' if railway_env else '4MB'
+    flash(f'File troppo grande! La dimensione massima consentita è {max_size_text}.', 'error')
     return redirect(url_for('index'))
 
 @app.route('/upload', methods=['POST'])
@@ -317,7 +320,9 @@ def upload_file():
     
     # Controllo aggiuntivo della dimensione del file
     if hasattr(file, 'content_length') and file.content_length > app.config['MAX_CONTENT_LENGTH']:
-        flash('Il file è troppo grande. La dimensione massima consentita è 4MB.')
+        railway_env = os.environ.get('RAILWAY_ENVIRONMENT_NAME') is not None
+        max_size_text = '50MB' if railway_env else '4MB'
+        flash(f'Il file è troppo grande. La dimensione massima consentita è {max_size_text}.')
         return redirect(request.url)
     
     if file and file.filename.lower().endswith('.csv'):

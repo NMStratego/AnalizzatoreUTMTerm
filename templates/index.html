@@ -88,7 +88,7 @@
                                 <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
                                 <h4>Trascina il file qui o clicca per selezionare</h4>
                                 <p class="text-muted mb-3">
-                                    Supporta file CSV fino a 4MB<br>
+                                    Supporta file CSV fino a <span id="maxFileSize">4MB</span><br>
                                     Il file deve contenere una colonna 'SORGENTE' con URL contenenti utm_term
                                 </p>
                                 <input type="file" name="file" id="fileInput" accept=".csv" class="d-none" required>
@@ -181,15 +181,17 @@
                             <i class="fas fa-lightbulb me-2"></i>
                             <strong>Suggerimento:</strong> Assicurati che gli URL nella colonna SORGENTE contengano il parametro utm_term per ottenere risultati accurati.
                         </p>
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Limite dimensione file:</strong> A causa dei limiti di Vercel, i file CSV non possono superare i 4MB. 
-                            Se il tuo file è più grande, prova a:
-                            <ul class="mb-0 mt-2">
-                                <li>Dividere il file in parti più piccole</li>
-                                <li>Rimuovere colonne non necessarie</li>
-                                <li>Filtrare solo i dati più recenti</li>
-                            </ul>
+                        <div class="alert alert-info" id="fileLimitInfo">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Limite dimensione file:</strong> <span id="platformInfo">I file CSV non possono superare i 4MB su questa piattaforma.</span>
+                            <div id="suggestions" class="mt-2">
+                                Se il tuo file è più grande, prova a:
+                                <ul class="mb-0 mt-1">
+                                    <li>Dividere il file in parti più piccole</li>
+                                    <li>Rimuovere colonne non necessarie</li>
+                                    <li>Filtrare solo i dati più recenti</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -230,13 +232,37 @@
 
         fileInput.addEventListener('change', handleFileSelect);
 
+        // Rileva la piattaforma e imposta i limiti
+        const isRailway = window.location.hostname.includes('railway.app') || window.location.hostname.includes('up.railway.app');
+        const maxSize = isRailway ? 50 * 1024 * 1024 : 4 * 1024 * 1024; // 50MB su Railway, 4MB su Vercel
+        const maxSizeText = isRailway ? '50MB' : '4MB';
+        
+        // Aggiorna il testo del limite
+        document.getElementById('maxFileSize').textContent = maxSizeText;
+        
+        // Aggiorna il messaggio informativo
+        const platformInfo = document.getElementById('platformInfo');
+        const suggestions = document.getElementById('suggestions');
+        const fileLimitInfo = document.getElementById('fileLimitInfo');
+        
+        if (isRailway) {
+            platformInfo.textContent = 'Su Railway puoi caricare file CSV fino a 50MB!';
+            fileLimitInfo.className = 'alert alert-success';
+            fileLimitInfo.querySelector('i').className = 'fas fa-check-circle me-2';
+            suggestions.style.display = 'none';
+        } else {
+            platformInfo.textContent = 'Su Vercel i file CSV non possono superare i 4MB.';
+            fileLimitInfo.className = 'alert alert-warning';
+            fileLimitInfo.querySelector('i').className = 'fas fa-exclamation-triangle me-2';
+            suggestions.style.display = 'block';
+        }
+        
         function handleFileSelect() {
             const file = fileInput.files[0];
             if (file) {
-                // Controlla la dimensione del file (4MB = 4 * 1024 * 1024 bytes)
-                const maxSize = 4 * 1024 * 1024;
+                // Controlla la dimensione del file
                 if (file.size > maxSize) {
-                    alert('Il file è troppo grande. La dimensione massima consentita è 4MB. Il tuo file è ' + formatFileSize(file.size) + '.');
+                    alert('Il file è troppo grande. La dimensione massima consentita è ' + maxSizeText + '. Il tuo file è ' + formatFileSize(file.size) + '.');
                     fileInput.value = '';
                     fileInfo.classList.add('d-none');
                     submitBtn.disabled = true;

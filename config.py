@@ -25,4 +25,6 @@ class Config:
     
     # Configurazione upload
     UPLOAD_FOLDER = 'uploads'
-    MAX_CONTENT_LENGTH = 4 * 1024 * 1024  # 4MB max file size per Vercel
+    # Rileva se siamo su Railway o Vercel
+    RAILWAY_ENVIRONMENT = os.environ.get('RAILWAY_ENVIRONMENT_NAME') is not None
+    MAX_CONTENT_LENGTH = 50 * 1024 * 1024 if RAILWAY_ENVIRONMENT else 4 * 1024 * 1024  # 50MB su Railway, 4MB su Vercel
