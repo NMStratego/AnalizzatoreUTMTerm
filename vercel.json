@@ -11,10 +11,5 @@
       "src": "/(.*)",
       "dest": "app.py"
     }
-  ],
-  "functions": {
-    "app.py": {
-      "excludeFiles": "{uploads/**,__pycache__/**,*.pyc,*.pyo,*.pyd,.git/**,.gitignore,README.md,*.md,static/**}"
-    }
-  }
+  ]
 }
